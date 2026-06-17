@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+// import { supabase } from '../../lib/supabase';
 
 function OrderInvoice({ order, onClose }) {
   const [customerName, setCustomerName] = useState('');
@@ -8,6 +9,8 @@ function OrderInvoice({ order, onClose }) {
     return now.toISOString().slice(11, 16);
   });
   const [quantity, setQuantity] = useState(order?.qty || 1);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     if (order) {
@@ -19,10 +22,16 @@ function OrderInvoice({ order, onClose }) {
 
   const priceNumber = Number(order.item.price.replace(/[^0-9.]/g, ''));
   const subtotal = priceNumber * quantity;
-  const handleConfirm = () => {
+
+  const handleConfirm = async () => {
+    setSaving(true);
+    setError('');
+
+    // TODO: Add real Supabase integration when credentials are available
     window.alert(
       `Order confirmed for ${customerName || 'Guest'} at ${pickupTime}. ${quantity} x ${order.item.name}. Total: $${subtotal.toFixed(2)}`
     );
+    setSaving(false);
     onClose();
   };
 
@@ -112,6 +121,9 @@ function OrderInvoice({ order, onClose }) {
                   <span>Total</span>
                   <span>${subtotal.toFixed(2)}</span>
                 </div>
+                {error && (
+                  <p className="mt-3 rounded-2xl bg-red-50 px-3 py-2 text-xs text-red-600">{error}</p>
+                )}
               </div>
             </div>
           </div>
@@ -125,9 +137,10 @@ function OrderInvoice({ order, onClose }) {
             </button>
             <button
               onClick={handleConfirm}
-              className="rounded-full bg-coffee-primary px-4 py-2 text-xs font-semibold text-white hover:bg-coffee-dark transition"
+              disabled={saving}
+              className="rounded-full bg-coffee-primary px-4 py-2 text-xs font-semibold text-white hover:bg-coffee-dark transition disabled:cursor-not-allowed disabled:bg-coffee-primary/70"
             >
-              Confirm Order
+              {saving ? 'Saving...' : 'Confirm Order'}
             </button>
           </div>
         </div>
